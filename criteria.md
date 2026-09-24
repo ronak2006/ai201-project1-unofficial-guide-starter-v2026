@@ -25,7 +25,8 @@ contains the answer.
 **Why this target:**
 <!-- e.g. "One of my questions is about a topic only two documents mention, so
      I expect that one to be hard." -->
-
+4 of 5 because the campus_life documents are short and single-topic, so retrieval should usually find the right chunk. One 
+question might fail because similar topics (e.g. multiple dining halls) could pull the wrong document.
 ---
 
 ## 2. Every answer names a source
@@ -35,7 +36,8 @@ Every answer the system produces names at least one source document.
 **Why this target:**
 <!-- Why all five and not four? What about your setup makes that achievable —
      or what would have to go wrong for it not to be? -->
-
+All 5 because source citation is handled by the code, not the documents — if it works once it should work every time. It   
+would only fail if the system returns no chunks at all.  
 ---
 
 ## 3. The relevance gate stops out-of-corpus questions
@@ -52,7 +54,8 @@ in at least 4 of 5 tries.
 **Why this target:**
 <!-- What did your distances look like when you set the cutoff in Milestone 4?
      Was there a clean gap, or did the two groups overlap? -->
-
+4 of 5 because the out-of-scope questions are clearly unrelated to campus life, so the gate should catch almost all of     
+them. One might slip through if its embedding happens to land close to a campus document by chance.
 ---
 
 ## 4. Something about your chunks
@@ -69,16 +72,19 @@ in at least 4 of 5 tries.
        - "No chunk is shorter than 200 characters, since anything below that
           in my corpus turned out to be a heading with no content under it." -->
 
-
+No chunk should span two different topic documents, for example: a 
+chunk about Kestrel Commons shouldn't bleed into a chunk about North Kitchen.
 
 **Why this target:**
-
-
+Each document covers exactly one topic with a clear heading. A chunk crossing two documents would mix unrelated facts,     
+making retrieval return confused results. Since documents are only 5–6 sentences, there's no good reason a chunk ever needs to span two
+of them.     
 
 ---
 
 ## 5. Your choice
-
+For at least 4 of 5 test questions, the answer contains the specific number or figure from the source document like "1.75", "120", "20 
+  minutes" rather than just a phrase.
 <!-- YOU WRITE THIS ONE TOO.
 
      Pick something you actually care about getting right. It could be about
@@ -90,7 +96,8 @@ in at least 4 of 5 tries.
 
 
 **Why this target:**
-
+The corpus is full of exact figures. A vague answer fails the user even if retrieval worked correctly as the number is     
+in the chunk itself. 
 
 
 ---

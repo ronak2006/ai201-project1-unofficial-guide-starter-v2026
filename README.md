@@ -21,11 +21,9 @@
 
 ## What This Does
 
-<!-- Three or four sentences. Which corpus you picked, and the kinds of
-     questions your system answers. Write it for someone who has never seen
-     this repo.
-
-     Milestone 5. -->
+This system answers questions about campus life using a RAG pipeline. The corpus is a collection of short 
+student-written guides covering dining halls, housing, courses, and administrative policies. When asked a question, the system finds 
+the most relevant document and generates an answer grounded in that text. It also does not answer questions not covered by the corpus.
 
 ## Chunking Strategy
 
@@ -35,15 +33,6 @@
 Each campus_lif document covers exactly one topic with a clear heading like "On the ____" and runs 5–6 sentences. The longest document is 549 characters. Because every document already fits in one chunk and covers a single idea, splitting them further would only create chunks that lose context. One document equals one chunk. Overlap is zero because there are never two consecutive chunks from the same document to bridge.
 
 ## Sample Chunks
-
-<!-- Five chunks, pasted as text. Label each one and name the file it came from
-     AND the function that produced it — the grader checks your code against
-     what you claim here.
-
-     `python app.py chunks -n 5` prints all three for you. Copy them straight
-     across.
-
-     Milestone 3. -->
 
 **Chunk 1** — source:admin_add_drop_deadline.txt#0 `` — produced by:chunker.py::split_documents ``
 
@@ -133,23 +122,13 @@ In-corpus questions scored between 0.205 and 0.289. Out-of-scope questions score
 
 ## How I Used AI
 
-<!-- Two specific moments. For each: what you asked for, what came back, and
-     what you changed about it.
 
-     "I asked Claude to write the chunking function from my notes. It ignored
-     the overlap, so I added that myself" is the level of detail we're after.
-     "I used AI to help me code" is not.
+**1.** I asked Claude to write the chunking function. It gave me a version with sentence-boundary splitting for long documents. Since all  
+  my documents were under 600 characters, I simplified it to just make one chunk per document. 
 
-     Milestone 5. -->
+**2.**  2. I asked Claude to check my chunking strategy. It confirmed that 1 doc = 1 chunk was the right call for short single-topic documents,and explained why overlap didn't matter in my case.
 
-**1.**
 
-**2.**
-
-<!-- ── Stretch features ─────────────────────────────────────────────────────
-     Doing one? Say so here BEFORE you start. A feature this README never
-     claims earns nothing.
-     ───────────────────────────────────────────────────────────────────────── -->
 
 ---
 

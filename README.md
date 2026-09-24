@@ -102,30 +102,34 @@ Laundry costs $1.75 wash, $1.75 dry, app-based. On noise: moderate; the building
 
 ## Sample Answer
 
-<!-- One complete question and answer, pasted as text, with the source line
-     visible. Milestone 4. -->
-
-**Question:**
+**Question:** How much does laundry cost in Innisfree Hall?
 
 **Answer:**
 
 ```
+In Innisfree Hall, laundry costs $1.75 for a wash and $1.75 for a dry.
+
+This information came from `housing_innisfree_hall.txt` and `housing_innisfree_hall_laundry.txt`.
+
+Sources retrieved: housing_aldridge_hall.txt, housing_aldridge_hall_laundry.txt, housing_calder_annexe.txt, housing_innisfree_hall.txt, housing_innisfree_hall_laundry.txt
 ```
 
-**My relevance cutoff:**
+**My relevance cutoff:** 0.6
 
-<!-- The number you set in config.py, and how you got there.
-
-     You ran five questions your corpus covers and the five in OUT_OF_SCOPE
-     that it clearly doesn't, and wrote down the best distance for each. What
-     did those two groups look like? Where was the gap? Put the actual numbers
-     here — the table below wants all ten rows.
-
-     Milestone 4. -->
+In-corpus questions scored between 0.205 and 0.289. Out-of-scope questions scored between 0.825 and 0.934. The gap between the two groups is large and clean, so 0.6 sits comfortably in the middle.
 
 | Question | In corpus? | Best distance |
 |---|---|---|
-|  |  |  |
+| What are the wait times at Kestrel Commons during the lunch rush? | Yes | 0.209 |
+| How much does laundry cost in Innisfree Hall? | Yes | 0.205 |
+| Can juniors and seniors pick housing before sophomores in the lottery? | Yes | 0.222 |
+| Until what week can I switch a course to pass/fail? | Yes | 0.257 |
+| How many credit hours are required to graduate? | Yes | 0.289 |
+| What is the capital of Mongolia? | No | 0.825 |
+| What is the recommended dosage of ibuprofen for a headache? | No | 0.844 |
+| Who won the 1994 World Cup? | No | 0.886 |
+| How do I write a for loop in Rust? | No | 0.896 |
+| How do I change the oil in a diesel engine? | No | 0.934 |
 
 ## How I Used AI
 

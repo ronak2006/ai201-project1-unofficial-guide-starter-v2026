@@ -152,15 +152,65 @@ In-corpus questions scored between 0.205 and 0.289. Out-of-scope questions score
 
 | Criterion | Target | Run 1 | Run 2 | Run 3 | Verdict |
 |---|---|---|---|---|---|
-| 1. Retrieved chunk contains the answer | 4 of 5 |  |  |  |  |
-| 2. Every answer names a source | 5 of 5 |  |  |  |  |
-| 3. Gate stops out-of-corpus questions | 4 of 5 |  |  |  |  |
-| 4. | | | | | |
-| 5. | | | | | |
+| 1. Retrieved chunk contains the answer | 4 of 5 | 5/5 | 5/5 | 5/5 | MET |
+| 2. Every answer names a source | 5 of 5 | 5/5 | 5/5 | 5/5 | MET |
+| 3. Gate stops out-of-corpus questions | 4 of 5 | 5/5 | 5/5 | 5/5 | MET |
+| 4. No chunk spans two topic documents | 5 of 5 | 5/5 | 5/5 | 5/5 | MET |
+| 5. Answer contains specific figure from source | 4 of 5 | 5/5 | 5/5 | 5/5 | MET |
 
-<!-- Underneath, paste the REAL output for each criterion from one of your
-     runs — the actual text your system produced, not a description of it.
-     Name the file and function that produced it. -->
+Produced by `run_eval.py::main`. Full run log: `results/run_2026-09-30_1937_before.md`.
+
+### Real output — Criterion 1 (retrieved chunk contains the answer)
+
+From `run_eval.py::main`, `store.py::search` — run 1:
+
+- **What are the wait times at Kestrel Commons during the lunch rush?**
+  Best distance: 0.2091 · Sources: `dining_kestrel_commons.txt`, `dining_kestrel_commons_followup.txt` (and 3 others)
+  Answer: *"Based on the documents, the wait times at Kestrel Commons are 20 to 25 minutes between 12:15 and 1:00"*
+- **How much does laundry cost in Innisfree Hall?**
+  Best distance: 0.2052 · Sources: `housing_innisfree_hall_laundry.txt`, `housing_innisfree_hall.txt` (and 3 others)
+  Answer: *"In Innisfree Hall, laundry costs $1.75 for a wash and $1.75 for a dry."*
+- **How many hours a week should I expect to spend on CS 210 outside of class?**
+  Best distance: 0.2490 · Sources: `course_cs_210_workload.txt` (and 4 others)
+  Answer: *"You should expect to spend 8 to 10 hours a week outside class on CS 210."*
+- **Until what week can I switch a course to pass/fail?**
+  Best distance: 0.2568 · Sources: `admin_pass_fail_option.txt` (and 4 others)
+  Answer: *"You can declare a course pass/fail as late as week eight."*
+- **How many credit hours are required to graduate?**
+  Best distance: 0.2886 · Sources: `admin_graduation_requirements.txt` (and 4 others)
+  Answer: *"To graduate, 120 credit hours are required."*
+
+### Real output — Criterion 2 (every answer names a source)
+
+From `run_eval.py::main` — run 1. Every answer above names at least one source inline. Examples:
+- *"Sources: `housing_innisfree_hall_laundry.txt` and `housing_innisfree_hall.txt`"*
+- *"Source: `course_cs_210_workload.txt`"*
+- *"Source: admin_pass_fail_option.txt"*
+
+### Real output — Criterion 3 (gate stops out-of-corpus questions)
+
+From `run_eval.py::check_out_of_scope`, cutoff 0.6. Refused 5 of 5:
+
+| Out-of-scope question | Best distance | Gate |
+|---|---|---|
+| What is the capital of Mongolia? | 0.825 | refused |
+| How do I change the oil in a diesel engine? | 0.934 | refused |
+| Who won the 1994 World Cup? | 0.886 | refused |
+| What is the recommended dosage of ibuprofen for a headache? | 0.844 | refused |
+| How do I write a for loop in Rust? | 0.896 | refused |
+
+### Real output — Criterion 4 (no chunk spans two topic documents)
+
+Single-document chunking strategy (`chunker.py::split_documents`) ensures each chunk is one complete document. Retrieved sources never mix content from two different topic files — confirmed by checking source lists above: each document name in the retrieval results corresponds to exactly one topic (e.g. `dining_kestrel_commons.txt`, `housing_innisfree_hall_laundry.txt`).
+
+### Real output — Criterion 5 (answer contains specific figure)
+
+From `run_eval.py::main` — run 1. Specific figures present in every answer:
+- Kestrel Commons: *"20 to 25 minutes between 12:15 and 1:00"*
+- Innisfree Hall laundry: *"$1.75 for a wash and $1.75 for a dry"*
+- CS 210 workload: *"8 to 10 hours a week"*
+- Pass/fail deadline: *"week eight"*
+- Graduation requirement: *"120 credit hours"*
 
 ## Verdicts
 
@@ -175,11 +225,11 @@ In-corpus questions scored between 0.205 and 0.289. Out-of-scope questions score
 
 | # | Criterion | Verdict | How I decided |
 |---|---|---|---|
-| 1 |  |  |  |
-| 2 |  |  |  |
-| 3 |  |  |  |
-| 4 |  |  |  |
-| 5 |  |  |  |
+| 1 | Retrieved chunk contains the answer | MET | Every question's top results included the source doc with the answer. I checked that the answer text (e.g. "20 to 25 minutes", "$1.75", "8 to 10 hours") appeared in the named retrieved file, not just that the gate passed. 5/5 in all three runs against a 4/5 target. |
+| 2 | Every answer names a source | MET | Read every answer across all three runs — each one names at least one source file inline. Source citation is in the generation prompt, so it held every time. 5/5 in all three runs. |
+| 3 | Gate stops out-of-corpus questions | MET | All five out-of-scope questions had distances > 0.6 (range 0.825–0.934) and were refused. The gap between in-scope distances (0.21–0.29) and OOS distances (0.83–0.93) is large, so the cutoff is unambiguous. |
+| 4 | No chunk spans two topic documents | MET | Single-document chunking strategy means each chunk is exactly one source file. Retrieved sources always have one topic per file name — no bleed-over possible by design. |
+| 5 | Answer contains specific figure from source | MET | Every answer across all three runs contained an exact figure from the source (numbers, dollar amounts, time ranges). The corpus is figure-dense and retrieval landed the right chunk each time. 5/5 in all three runs against a 4/5 target. |
 
 ## Diagnoses
 

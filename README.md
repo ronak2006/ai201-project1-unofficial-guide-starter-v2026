@@ -251,6 +251,24 @@ From `run_eval.py::main` — run 1. Specific figures present in every answer:
 
      Milestone 3. -->
 
+No criteria were missed. All five came in at 5/5 across every run.
+
+That result is honest about the system but it also reflects that the targets were set conservatively. Here is the honest accounting:
+
+**Criterion 1 (chunk contains answer) — target was 4/5, result was 5/5.** The corpus documents are short and single-topic, so retrieval almost never returns the wrong file. A 4/5 target was reasonable before running anything, but in hindsight 5/5 is the correct expectation for this corpus. I would tighten it to 5/5.
+
+**Criterion 3 (gate stops OOS questions) — target was 4/5, result was 5/5.** The out-of-scope questions I chose (Mongolia capital, oil change, 1994 World Cup) are completely unrelated to campus life. The distance gap was enormous — in-scope questions topped out at 0.29, OOS questions started at 0.83. There was never any risk the gate would pass one. I would tighten the target to 5/5, and more importantly I would replace at least two of the OOS questions with harder ones: something adjacent to campus life, like "What is the admission acceptance rate?" or "How do I apply for financial aid?" Those are university-related and might land closer to the corpus boundary, actually testing the cutoff.
+
+**Criterion 5 (answer contains specific figure) — target was 4/5, result was 5/5.** This criterion is essentially a restatement of criterion 1 for a corpus that is almost entirely factual with numbers. If retrieval finds the right chunk, the figure is in it, and generation includes it. I would tighten this to 5/5 as well.
+
+**What I would tighten and to what:**
+
+Criterion 1 → 5 of 5
+Criterion 3 → 5 of 5, with harder OOS questions that sit closer to the corpus boundary
+Criterion 5 → 5 of 5
+
+The one criterion that could genuinely stress the system is criterion 1 on harder questions — ones where the answer spans a detail mentioned only once in a follow-up document, or where two documents give slightly different numbers. The current question set avoids those cases.
+
 ## The Improvement
 
 **What I changed:**

@@ -307,17 +307,28 @@ The reason hybrid didn't help: the corpus is 88 short, single-topic documents. S
 
 ## What's Still Broken
 
-<!-- For each criterion still missed after your fix: what you'd do about it,
-     and why you stopped where you did.
+No criterion was missed after the fix — all five are at 5/5 before and after. But "nothing is broken" is itself the problem worth naming here.
 
-     "I ran out of time" is fine if it's true. Pretending nothing is left is
-     not.
+**The targets were set too conservatively.** Every criterion cleared on the first try and stayed cleared after the improvement. That means there was nothing to diagnose in the real sense, nothing that the improvement could actually fix, and no evidence that the system is being genuinely tested. A test suite where everything passes before and after a change isn't measuring anything.
 
-     Milestone 5. -->
+The thing I would do next is make the tests harder in the ways the diagnosis named:
+
+**Criterion 1 and 5 — use harder questions.** Replace at least two of the five questions with ones where the answer is buried in a follow-up document that only one file covers, or where two documents mention slightly different numbers (e.g., Aldridge Hall and Innisfree Hall both have laundry — a question like "which residence hall has cheaper laundry?" requires comparing two retrieved chunks, not just finding one). That's a question semantic search can miss and BM25 would almost certainly miss too.
+
+**Criterion 3 — use harder OOS questions.** Replace the five obviously-unrelated questions (Mongolia, oil changes, World Cup) with ones that sit at the edge of the corpus: "What is the tuition at this university?" or "How do I apply for financial aid?" These are university-adjacent and their embeddings will land closer to the corpus documents, actually probing the gate's cutoff rather than landing 0.83 away.
+
+I stopped here because the milestone asks for one change and I made it. The next honest step is rewriting criteria.md with tighter targets and a harder question set before running again.
 
 ## What I'd Do Differently
 
-<!-- Knowing what you know now — which of your five criteria would you write
-     differently, and why?
+**Criterion 1 (retrieved chunk contains the answer):** I'd raise the target from 4/5 to 5/5 and replace at least two questions with ones where the answer is in a follow-up document rather than the primary one. The current questions are all answered by the most-obviously-named file in the corpus (`dining_kestrel_commons.txt` for Kestrel Commons, `housing_innisfree_hall_laundry.txt` for laundry). A real test would include a question where the answer is in `_followup.txt` only, so retrieval actually has to rank it above the parent document.
 
-     Milestone 5. -->
+**Criterion 3 (gate stops OOS questions):** I'd replace the five questions entirely. "What is the capital of Mongolia?" is not testing the gate — it's confirming that the gate exists. The interesting question is where the boundary actually sits. I'd write OOS questions that are university-related but not campus-life-related: financial aid policy, tuition rates, admissions statistics. If one of those slips through at threshold 0.6, that's a real finding. If none do, that's also a real finding — and I'd know the threshold is calibrated correctly rather than just wide.
+
+**Criterion 4 (no chunk spans two documents):** This criterion is guaranteed to pass by the implementation — single-document chunking makes it structurally impossible to fail. A criterion that can't fail isn't a criterion. I'd replace it with something observable at runtime: "For at least 4 of 5 questions, the top-ranked chunk comes from the document whose filename most directly names the topic of the question." That's checkable and can actually fail.
+
+## How I Used AI (Unit 2 additions)
+
+**3.** I used Claude Code to implement `store.py::hybrid_search` — the BM25 + semantic reciprocal rank fusion function — and to wire the `--hybrid` flag through `run_eval.py`. I reviewed each change before it was written.
+
+**4.** I used Claude Code to fill in the run log tables and real output sections of the README from the raw results files, since that's mechanical aggregation from structured data rather than judgment. The verdicts, diagnoses, and "Did it help?" write-up I wrote myself, because those require reading the actual distances and deciding what they mean.

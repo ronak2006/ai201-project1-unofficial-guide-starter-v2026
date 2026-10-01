@@ -220,6 +220,84 @@ def search(
     return results
 
 
+def hybrid_search(
+    question: str,
+    top_k: int | None = None,
+    corpus: str | None = None,
+    variant: str = "default",
+) -> list[Result]:
+    """
+    Hybrid retrieval: BM25 keyword search combined with semantic search via
+    reciprocal rank fusion (RRF).
+
+    Each document gets a RRF score = 1/(k + semantic_rank) + 1/(k + bm25_rank).
+    The top_k by RRF score are returned. The distance field still holds the
+    semantic cosine distance so the relevance gate works the same way.
+    """
+    from rank_bm25 import BM25Okapi
+
+    top_k = top_k or config.TOP_K
+    name = config.collection_name(corpus, variant)
+
+    try:
+        collection = _client().get_collection(name)
+    except Exception as exc:
+        raise RuntimeError(
+            f"No index called '{name}'. Run `python app.py index` first."
+        ) from exc
+
+    # Pull every document so BM25 can rank across the whole corpus.
+    all_data = collection.get(include=["documents", "metadatas"])
+    docs = all_data["documents"]
+    metas = all_data["metadatas"]
+    ids = all_data["ids"]
+    n = len(docs)
+
+    # BM25 rank (0 = best match).
+    bm25 = BM25Okapi([d.lower().split() for d in docs])
+    bm25_scores = bm25.get_scores(question.lower().split())
+    bm25_rank_of = {
+        ids[i]: rank
+        for rank, i in enumerate(
+            sorted(range(n), key=lambda i: bm25_scores[i], reverse=True)
+        )
+    }
+
+    # Semantic rank over the full corpus (0 = nearest).
+    raw = collection.query(
+        query_embeddings=embed([question]),
+        n_results=n,
+    )
+    sem_ids = raw["ids"][0]
+    sem_distances = raw["distances"][0]
+    sem_rank_of = {doc_id: rank for rank, doc_id in enumerate(sem_ids)}
+    id_to_distance = dict(zip(sem_ids, sem_distances))
+
+    # Reciprocal rank fusion.
+    k = 60
+    rrf = {
+        doc_id: (1 / (k + sem_rank_of[doc_id]) + 1 / (k + bm25_rank_of[doc_id]))
+        for doc_id in ids
+    }
+    top_ids = sorted(ids, key=lambda d: rrf[d], reverse=True)[:top_k]
+
+    id_to_idx = {ids[i]: i for i in range(n)}
+    results: list[Result] = []
+    for doc_id in top_ids:
+        i = id_to_idx[doc_id]
+        meta = metas[i]
+        results.append(
+            Result(
+                text=docs[i],
+                source=str(meta.get("source", "unknown")),
+                label=f"{meta.get('source', 'unknown')}#{meta.get('index', 0)}",
+                distance=id_to_distance.get(doc_id, 1.0),
+                produced_by=str(meta.get("produced_by", "unknown")),
+            )
+        )
+    return results
+
+
 def index_exists(corpus: str | None = None, variant: str = "default") -> bool:
     """Is there an index here to search, without searching it?
 

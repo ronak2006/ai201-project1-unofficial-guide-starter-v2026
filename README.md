@@ -271,27 +271,32 @@ The one criterion that could genuinely stress the system is criterion 1 on harde
 
 ## The Improvement
 
-**What I changed:**
+**What I changed:** Added hybrid retrieval — BM25 keyword search combined with semantic search via reciprocal rank fusion (RRF). Implemented in `store.py::hybrid_search`. Run with `python run_eval.py --label after --hybrid`.
 
-**Why I picked it:**
+**Why I picked it:** The diagnosis noted that all targets were set conservatively and that the OOS questions were too obviously unrelated to campus life to stress the gate. Hybrid search is the change most likely to move retrieval results on questions that contain exact terms (course codes like "CS 210", dollar amounts, deadline numbers) that semantic search can treat as meaning rather than literal tokens.
 
 <!-- Connect it to a specific diagnosis above in one sentence. If you can't,
      you picked a fix because it sounded impressive. -->
 
 ### Run Log — After
 
-<!-- Same format, same five criteria, three runs each.
-     `python run_eval.py --label after` -->
+Full run log: `results/run_2026-09-30_2003_after.md`. Produced by `run_eval.py::main`, retrieval by `store.py::hybrid_search`.
 
 | Criterion | Target | Run 1 | Run 2 | Run 3 | Verdict |
 |---|---|---|---|---|---|
-| 1. Retrieved chunk contains the answer | 4 of 5 |  |  |  |  |
-| 2. Every answer names a source | 5 of 5 |  |  |  |  |
-| 3. Gate stops out-of-corpus questions | 4 of 5 |  |  |  |  |
-| 4. | | | | | |
-| 5. | | | | | |
+| 1. Retrieved chunk contains the answer | 4 of 5 | 5/5 | 5/5 | 5/5 | MET |
+| 2. Every answer names a source | 5 of 5 | 5/5 | 5/5 | 5/5 | MET |
+| 3. Gate stops out-of-corpus questions | 4 of 5 | 5/5 | 5/5 | 5/5 | MET |
+| 4. No chunk spans two topic documents | 5 of 5 | 5/5 | 5/5 | 5/5 | MET |
+| 5. Answer contains specific figure from source | 4 of 5 | 5/5 | 5/5 | 5/5 | MET |
 
 **Did it help?**
+
+Honestly: **no, not measurably.** Every criterion was already at 5/5 before, and every criterion is still at 5/5 after. The best distances are identical — 0.2091, 0.2052, 0.2490, 0.2568, 0.2886 — because those are semantic distances for the top-ranked result, and the top result by semantic distance didn't change for any question. The correct source document was already ranked #1 by semantic search in all five cases.
+
+What did change is the mix of documents in positions 2–5. For question 1 (Kestrel Commons), `dining_halden_hall_followup.txt` dropped out and `transit_walking.txt` appeared — BM25 matched "walk" or proximity terms. For question 3 (CS 210 hours), hybrid search pulled in `course_cs_210.txt` (the general course description) alongside `course_cs_210_workload.txt`, because "CS 210" appears literally in the question and BM25 rewards exact token matches. That's the right behavior — hybrid search did what it was supposed to do — but on this corpus the semantic search was already finding the right document first, so the reranking had nowhere to improve.
+
+The reason hybrid didn't help: the corpus is 88 short, single-topic documents. Semantic search has almost no competition from wrong documents to displace. A corpus where hybrid would visibly help would have longer documents with mixed topics, or questions where the key term (a name, a course code, an exact price) doesn't have a strong semantic neighbor — and on this corpus, that situation never came up.
 
 <!-- Say plainly whether it did, and how you know. If it made things worse,
      say that — a change that backfired, honestly reported, earns full credit
